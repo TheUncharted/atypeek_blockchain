@@ -4,82 +4,83 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 )
 
-
-
+// Keeper manages transfers between accounts
 type Keeper struct {
-	courseStoreKey      sdk.StoreKey
-	bankKeeper  bank.Keeper
-	cdc *codec.Codec
+	cdc      *codec.Codec
+	am       auth.AccountKeeper
+	storeKey sdk.StoreKey
 }
 
-func NewKeeper(courseStoreKey sdk.StoreKey,   cdc *codec.Codec) Keeper {
-	return Keeper{
-		courseStoreKey:      courseStoreKey,
-		cdc:                 cdc,
+// NewKeeper returns a new Keeper
+func NewKeeper(cdc *codec.Codec, am auth.AccountKeeper, storeKey sdk.StoreKey) Keeper {
+	return Keeper{cdc: cdc, am: am, storeKey: storeKey}
+}
+
+func (k Keeper) UpdateContrib(ctx sdk.Context, ctb Contrib, tags *sdk.Tags) sdk.Error {
+
+	fmt.Println("ValidateAccounts")
+	acc, err := ctb.ValidateAccounts(ctx, k.am)
+	if err != nil {
+		fmt.Println("----------------------------------")
+		return err
 	}
-}
 
+	fmt.Println("append tags")
+	ctb.AppendTags(tags)
 
+	var oldscore int64
+	fmt.Println("store  key %v", k.storeKey)
+	store := ctx.KVStore(k.storeKey)
+	key := ctb.GetKey()
 
-
-func (k Keeper) AddCourse(ctx sdk.Context, title string) {
-	course := k.GetCourse(ctx, title)
-	course.Title = title
-	k.SetCourse(ctx, title, course)
-
-}
-
-func (k Keeper) SetCourse(ctx sdk.Context, title string, course Course) {
-	if course.Owner.Empty() {
-		fmt.Printf("No owner")
-		return
+	fmt.Println("getStatus")
+	status, err := getStatus(store, key, k.cdc)
+	if err != nil {
+		return err
 	}
-	store := ctx.KVStore(k.courseStoreKey)
-	store.Set([]byte(title), k.cdc.MustMarshalBinaryBare(course))
-
-}
-
-func (k Keeper) GetCourse(ctx sdk.Context, title string) Course {
-	store := ctx.KVStore(k.courseStoreKey)
-	if !store.Has([]byte(title)) {
-		return NewCourse()
+	if status != nil {
+		oldscore = status.GetScore()
+		err := status.Update(ctb)
+		if err != nil {
+			return err
+		}
+	} else {
+		oldscore = 0
+		status = ctb.NewStatus()
 	}
-	bz := store.Get([]byte(title))
-	var course Course
-	k.cdc.MustUnmarshalBinaryBare(bz, &course)
-	return course
+	fmt.Println("GetScore")
+	diff := status.GetScore() - oldscore
+	setStatus(store, key, status, k.cdc)
+	fmt.Println("update reput")
+	updateRepute(acc, diff)
+	fmt.Println("update set account")
+	k.am.SetAccount(ctx, acc)
+
+	return nil
 }
 
-func (k Keeper) GetNamesIterator(ctx sdk.Context) sdk.Iterator {
-	store := ctx.KVStore(k.courseStoreKey)
-	return sdk.KVStorePrefixIterator(store, nil)
+func getStatus(store sdk.KVStore, key []byte, cdc *codec.Codec) (Status, sdk.Error) {
+	var status Status
+	data := store.Get(key)
+	if len(data) > 0 {
+		err := cdc.UnmarshalBinaryBare(data, &status)
+		if err != nil {
+			// msg := fmt.Sprintf("Error reading contrib %X", key)
+			return nil, sdk.ErrUnknownAddress(fmt.Sprintf("%s", err))
+		}
+		return status, nil
+	}
+	return nil, nil
 }
 
-// HasOwner - returns whether or not the name already has an owner
-func (k Keeper) HasOwner(ctx sdk.Context, title string) bool {
-	return !k.GetCourse(ctx, title).Owner.Empty()
+func setStatus(store sdk.KVStore, key []byte, status Status, cdc *codec.Codec) {
+	bin, _ := cdc.MarshalBinaryBare(status)
+	store.Set(key, bin)
 }
 
-// GetOwner - get the current owner of a name
-func (k Keeper) GetOwner(ctx sdk.Context, title string) sdk.AccAddress {
-	return k.GetCourse(ctx, title).Owner
-}
-
-// SetOwner - sets the current owner of a name
-func (k Keeper) SetOwner(ctx sdk.Context, title string, owner sdk.AccAddress) {
-	course := k.GetCourse(ctx, title)
-	course.Owner = owner
-	k.SetCourse(ctx, title, course)
-}
-
-func (k Keeper) Deposit(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins) {
-
-	k.bankKeeper.AddCoins(ctx, owner, coins)
-}
-
-func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins ) {
-	k.bankKeeper.SubtractCoins(ctx, owner, coins)
+func updateRepute(acc auth.Account, diff int64) {
+	//acc.(*types.ReputeAccount).Repute += diff
 }

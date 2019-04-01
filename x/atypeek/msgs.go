@@ -2,98 +2,65 @@ package atypeek
 
 import (
 	"encoding/json"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type MsgAddCourse struct {
-	Title string
-	Owner sdk.AccAddress
+// MsgContrib - high level transaction of the contrib module
+type MsgContrib struct {
+	Contribs Contribs `json:"contribs"`
 }
 
-func NewMsgAddCourse(title string, owner sdk.AccAddress) MsgAddCourse {
-	return MsgAddCourse{
-		Title: title,
-		Owner: owner,
-	}
+var _ sdk.Msg = MsgContrib{}
+
+// NewMsgContrib - construct arbitrary multi-in, multi-out contrib msg.
+func NewMsgContrib(ctb []Contrib) MsgContrib {
+	return MsgContrib{Contribs: ctb}
 }
 
-func (msg MsgAddCourse) Route() string { return "nameservice" }
-func (msg MsgAddCourse) Type() string  { return "add_course" }
+func (msg MsgContrib) Route() string { return "nameservice" } // TODO: "contrib/contrib"
 
-func (msg MsgAddCourse) ValidateBasic() sdk.Error {
-	if msg.Owner.Empty() {
-		return sdk.ErrInvalidAddress(msg.Owner.String())
+// Implements Msg.
+func (msg MsgContrib) Type() string { return "contrib" } // TODO: "contrib/contrib"
+
+// Implements Msg.
+func (msg MsgContrib) ValidateBasic() sdk.Error {
+	// this just makes sure all the contribs are properly formatted
+	if len(msg.Contribs) == 0 {
+		return ErrNoContribs(DefaultCodespace).TraceSDK("")
 	}
 
-	if len(msg.Title) == 0 {
-		return sdk.ErrUnknownRequest("Title cannot be empty")
+	// make sure all contribs are individually valid
+	err := msg.Contribs.ValidateBasic()
+	if err != nil {
+		return err.TraceSDK("")
 	}
 
 	return nil
 }
 
-func (msg MsgAddCourse) GetSignBytes() []byte {
-	b, err := json.Marshal(msg)
+// Implements Msg.
+func (msg MsgContrib) GetSignBytes() []byte {
+	b, err := json.Marshal(msg) // XXX: ensure some canonical form
 	if err != nil {
 		panic(err)
 	}
+	// return b
 	return sdk.MustSortJSON(b)
 }
 
-func (msg MsgAddCourse) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Owner}
-}
-
-type MsgBankAccountEvent struct {
-	Event  string
-	Amount int64
-	Owner  sdk.AccAddress
-}
-
-func NewMsgBankAccountEvent(event string, amount int64, owner sdk.AccAddress) MsgBankAccountEvent {
-	return MsgBankAccountEvent{
-		Event:  event,
-		Amount: amount,
-		Owner:  owner,
+// Implements Msg.
+func (msg MsgContrib) GetSigners() []sdk.AccAddress {
+	m := make(map[string]struct{})
+	addrs := make([]sdk.AccAddress, 0, len(msg.Contribs))
+	for _, ctb := range msg.Contribs {
+		contributor := ctb.GetContributor()
+		key := contributor.String()
+		_, found := m[key]
+		if !found {
+			addrs = append(addrs, contributor)
+			m[key] = struct{}{}
+		}
 	}
-}
-
-func (msg MsgBankAccountEvent) Route() string {
-	return "atypeek"
-}
-
-func (msg MsgBankAccountEvent) Type() string {
-	return "event"
-}
-
-func (msg MsgBankAccountEvent) ValidateBasic() sdk.Error {
-	if msg.Owner.Empty() {
-		return sdk.ErrInvalidAddress(msg.Owner.String())
-	}
-
-	if msg.Event != "deposit" && msg.Event != "withdraw" {
-		return sdk.ErrUnknownRequest("Event not authorized")
-	}
-
-	if msg.Amount <= 0 {
-		return sdk.ErrUnknownRequest("Amount must be positive")
-	}
-
-	return nil
-}
-
-func (msg MsgBankAccountEvent) GetSignBytes() []byte {
-
-	b, err := json.Marshal(msg)
-
-	if err != nil {
-
-		panic(err)
-	}
-
-	return sdk.MustSortJSON(b)
-}
-
-func (msg MsgBankAccountEvent) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Owner}
+	return addrs
 }

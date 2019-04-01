@@ -1,47 +1,64 @@
 package cli
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/spf13/cobra"
-	"github.com/theuncharted/cosmostest/x/atypeek"
+	"github.com/spf13/viper"
+	"github.com/theuncharted/atypeek_blockchain/x/atypeek"
 )
 
-func GetCmdCourse(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use: "course [title]",
-		Short: "Query course info of title",
-		Args: cobra.ExactArgs(1),
-		RunE:func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			title := args[0]
-			res, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/course/%s", queryRoute, title), nil)
+const (
+	flagScore = "score"
+)
+
+// GetContribCmd returns a query contrib that will display the
+// state of the contrib at a given key
+func GetContribCmd(storeName string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "query [key]",
+		Short: "Query contrib status",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// find the key to look up the contrib
+			key, err := hex.DecodeString(args[0])
 			if err != nil {
-				fmt.Printf("could not resolve course - %s \n", string(title))
+				return err
 			}
-			var out atypeek.Course
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+
+			// perform query
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			res, err := cliCtx.QueryStore(key, storeName)
+			// res, err := ctx.Query(storeName)
+			if err != nil {
+				return err
+			}
+
+			// parse out the value
+			var ctb atypeek.Status
+			err = cdc.UnmarshalBinaryBare(res, &ctb)
+			if err != nil {
+				fmt.Println(res)
+				return err
+			}
+			fmt.Printf("ctb %+v", ctb)
+
+			// print out whole contrib
+			output, err := json.MarshalIndent(ctb, "", "  ")
+			if err != nil {
+				return err
+			}
+			if viper.GetBool(flagScore) {
+				fmt.Println(ctb.GetScore())
+			} else {
+				fmt.Println(string(output))
+			}
+			return nil
 		},
 	}
-}
-
-func GetCmdCourses(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use: "courses",
-		Short: "Courses",
-		//Args: cobra.ExactArgs(1),
-		RunE:func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			res, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/courses", queryRoute), nil)
-			if err != nil {
-				fmt.Printf("could not query courses - %s \n")
-			}
-			var out atypeek.QueryResCourse
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
-		},
-	}
+	cmd.Flags().Bool(flagScore, false, "bool of only showing score")
+	return cmd
 }

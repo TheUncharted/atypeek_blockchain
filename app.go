@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/theuncharted/cosmostest/x/atypeek"
+	"github.com/theuncharted/atypeek_blockchain/x/atypeek"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -88,9 +88,9 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 	// The NameserviceKeeper is the Keeper from the module for this tutorial
 	// It handles interactions with the namestore
 	app.nsKeeper = atypeek.NewKeeper(
-
-		app.keyNS,
 		app.cdc,
+		app.accountKeeper,
+		app.keyNS,
 	)
 
 	// The AnteHandler handles signature verification and transaction pre-processing
@@ -103,8 +103,8 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 		AddRoute("nameservice", atypeek.NewHandler(app.nsKeeper))
 
 	// The app.QueryRouter is the main query router where each module registers its routes
-	app.QueryRouter().
-		AddRoute("nameservice", atypeek.NewQuerier(app.nsKeeper))
+	//app.QueryRouter().
+	//	AddRoute("nameservice", atypeek.NewQuerier(app.nsKeeper))
 
 	// The initChainer handles translating the genesis.json file into initial state for the network
 	app.SetInitChainer(app.initChainer)

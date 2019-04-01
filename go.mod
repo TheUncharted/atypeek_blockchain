@@ -1,4 +1,4 @@
-module github.com/theuncharted/cosmostest
+module github.com/theuncharted/atypeek_blockchain
 
 go 1.12
 

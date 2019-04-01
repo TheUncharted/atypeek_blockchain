@@ -20,15 +20,15 @@ import (
 	auth "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/client/rest"
-	app "github.com/theuncharted/cosmostest"
-	nsclient "github.com/theuncharted/cosmostest/x/atypeek/client"
+	app "github.com/theuncharted/atypeek_blockchain"
+	nsclient "github.com/theuncharted/atypeek_blockchain/x/atypeek/client"
 	//nsrest "github.com/cosmos/sdk-application-tutorial/x/nameservice/client/rest"
-	nsrest "github.com/theuncharted/cosmostest/x/atypeek/client/rest"
+	nsrest "github.com/theuncharted/atypeek_blockchain/x/atypeek/client/rest"
 )
 
 const (
 	storeAcc = "acc"
-	storeNS  = "nameservice"
+	storeNS  = "ns"
 )
 
 var defaultCLIHome = os.ExpandEnv("$HOME/.nscli")

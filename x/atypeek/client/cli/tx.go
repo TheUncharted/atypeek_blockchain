@@ -1,85 +1,94 @@
 package cli
 
 import (
+	"encoding/hex"
 	"errors"
-	"github.com/spf13/cobra"
-	"strconv"
-
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/utils"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/theuncharted/cosmostest/x/atypeek"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtxb "github.com/cosmos/cosmos-sdk/x/auth/client/txbuilder"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/theuncharted/atypeek_blockchain/x/atypeek"
 )
 
-// GetCmdBuyName is the CLI command for sending a BuyName transaction
-func GetCmdAddCourse(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "add-course title",
-		Short: "add course in blockchain",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc).WithAccountDecoder(cdc)
+const (
+	flagTo      = "to"
+	flagKey     = "key"
+	flagType    = "type"
+	flagContent = "content"
+	flagVotes   = "votes"
+	flagTime    = "time"
+	// flagRole = "role"
+	// flagAsync  = "async"
+)
 
-			txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			if err := cliCtx.EnsureAccountExists(); err != nil {
-				return err
-			}
-
-			title := args[0]
-			if title == "" {
-				return errors.New("title is empty")
-			}
-
-			msg := atypeek.NewMsgAddCourse(title, cliCtx.GetFromAddress())
-			err := msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
-
-			cliCtx.PrintResponse = true
-
-			return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, []sdk.Msg{msg})
-		},
-	}
+func BuildContribMsg(ctb atypeek.Contrib) sdk.Msg {
+	msg := atypeek.NewMsgContrib(atypeek.Contribs{ctb})
+	return msg
 }
 
-func GetCmdBankAccountEvent(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "add-account-event",
-		Short: "add event in bank account",
-		Args:  cobra.ExactArgs(2),
+// ContribTxCommand will create a contrib tx and sign it with the given key
+func ContribTxCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "contrib",
+		Short: "Create and sign a contrib tx",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc).WithAccountDecoder(cdc)
-
 			txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			if err := cliCtx.EnsureAccountExists(); err != nil {
-				return err
-			}
+			// get the from address
+			from := cliCtx.GetFromAddress()
 
-			event := args[0]
-			if event == "" {
-				return errors.New("event is empty")
-			}
-
-			amount, err := strconv.ParseInt(args[1], 0, 64)
-			if err != nil || amount <= 0 {
-				return errors.New("amount must be positive")
-			}
-
-			msg := atypeek.NewMsgBankAccountEvent(event, amount, cliCtx.GetFromAddress())
-			err = msg.ValidateBasic()
+			ctbKey, err := hex.DecodeString(viper.GetString(flagKey))
 			if err != nil {
 				return err
 			}
 
-			cliCtx.PrintResponse = true
+			ctbTime := viper.GetString(flagTime)
 
+			ctbContent := []byte(viper.GetString(flagContent))
+			fmt.Printf("content flag = %s", string(ctbContent))
+
+			// parse destination address
+			dest := viper.GetString(flagTo)
+			to, err := sdk.AccAddressFromBech32(dest)
+			if err != nil {
+				return err
+			}
+
+			ctbType := viper.GetString(flagType)
+			var ctb atypeek.Contrib
+			switch ctbType {
+			case "Invite", "Recommend", "Post":
+
+				switch ctbType {
+				case "Invite":
+					ctb = atypeek.Invite{atypeek.BaseContrib2{atypeek.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
+				case "Post":
+					ctb = atypeek.Post{atypeek.BaseContrib2{atypeek.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
+				case "Recommend":
+					ctb = atypeek.Recommend{atypeek.BaseContrib2{atypeek.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
+				}
+
+			default:
+				return errors.New("Invalid Contrib Type")
+			}
+
+			msg := BuildContribMsg(ctb)
+			cliCtx.PrintResponse = true
 			return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, []sdk.Msg{msg})
 		},
 	}
+
+	cmd.Flags().String(flagTo, "", "Address to contrib")
+	cmd.Flags().String(flagKey, "", "Key of the contrib")
+	cmd.Flags().String(flagType, "", "Type of the contrib")
+	cmd.Flags().String(flagContent, "", "Content of the contrib")
+	cmd.Flags().String(flagVotes, "", "Votes of the contrib")
+	cmd.Flags().String(flagTime, "", "Time of the contrib")
+	// cmd.Flags().Bool(flagAsync, false, "Pass the async flag to send a tx without waiting for the tx to be included in a block")
+	return cmd
 }

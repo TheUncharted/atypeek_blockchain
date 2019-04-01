@@ -3,50 +3,37 @@ package atypeek
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"reflect"
 )
 
-func NewHandler(keeper Keeper) sdk.Handler {
+// NewHandler returns a handler for "contrib" type messages.
+func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
-		case MsgAddCourse:
-			return handleMsgAddCourse(ctx, keeper, msg)
-		case MsgBankAccountEvent:
-			return handleMsgBankAccountEvent(ctx, keeper, msg)
+		case MsgContrib:
+			return handleMsgContrib(ctx, k, msg)
 		default:
-			errMsg := fmt.Sprintf("Unrecognized nameservice Msg Type: %v", msg.Type())
+			errMsg := "Unrecognized contrib Msg type: " + reflect.TypeOf(msg).Name()
 			return sdk.ErrUnknownRequest(errMsg).Result()
 		}
 	}
 }
 
-func handleMsgBankAccountEvent(ctx sdk.Context, keeper Keeper, msg MsgBankAccountEvent) sdk.Result {
-	if msg.Owner.Empty() {
-		return sdk.ErrUnknownRequest("Owner must not be empty").Result()
+// Handle MsgContrib.
+func handleMsgContrib(ctx sdk.Context, k Keeper, msg MsgContrib) sdk.Result {
+	tags := sdk.EmptyTags()
+
+	fmt.Printf("*********handleMsgContrib********* %v", len(msg.Contribs))
+	for _, ctb := range msg.Contribs {
+		fmt.Printf("contrib")
+		err := k.UpdateContrib(ctx, ctb, &tags)
+		fmt.Printf("contrib done")
+		if err != nil {
+			return err.Result()
+		}
 	}
 
-	if msg.Amount <= 0 {
-		return sdk.ErrUnknownRequest("Amount must be positive").Result()
+	return sdk.Result{
+		Tags: tags,
 	}
-
-	coin := sdk.NewCoin("atk", sdk.NewInt(msg.Amount))
-
-	switch msg.Event {
-	case "deposit":
-		keeper.Deposit(ctx, msg.Owner, sdk.Coins{coin})
-	case "withdraw":
-		keeper.Withdraw(ctx, msg.Owner, sdk.Coins{coin})
-	default:
-		errMsg := fmt.Sprintf("Unrecognized event Msg Event %v", msg.Event)
-		return sdk.ErrUnknownRequest(errMsg).Result()
-	}
-	return sdk.Result{}
-}
-
-func handleMsgAddCourse(ctx sdk.Context, keeper Keeper, msg MsgAddCourse) sdk.Result {
-	if msg.Owner.Empty() {
-		return sdk.ErrUnknownRequest("Owner must not be empty").Result()
-	}
-	keeper.SetOwner(ctx, msg.Title, msg.Owner)
-	keeper.AddCourse(ctx, msg.Title)
-	return sdk.Result{}
 }

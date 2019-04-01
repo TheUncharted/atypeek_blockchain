@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/go-amino"
-	nameservicecmd "github.com/theuncharted/cosmostest/x/atypeek/client/cli"
+	nameservicecmd "github.com/theuncharted/atypeek_blockchain/x/atypeek/client/cli"
 )
 
 type ModuleClient struct {
@@ -23,9 +23,7 @@ func (mc ModuleClient) GetQueryCmd() *cobra.Command {
 	}
 
 	namesvcQueryCmd.AddCommand(client.GetCommands(
-		nameservicecmd.GetCmdCourse(mc.storeKey, mc.cdc),
-		nameservicecmd.GetCmdCourses(mc.storeKey, mc.cdc),
-
+		nameservicecmd.GetContribCmd(mc.storeKey, mc.cdc),
 	)...)
 	return namesvcQueryCmd
 }
@@ -33,15 +31,13 @@ func (mc ModuleClient) GetQueryCmd() *cobra.Command {
 // GetTxCmd returns the transaction commands for this module
 func (mc ModuleClient) GetTxCmd() *cobra.Command {
 	namesvcTxCmd := &cobra.Command{
-		Use:   "nameservice",
+		Use:   "atypeek",
 		Short: "Nameservice transactions subcommands",
 	}
 
 	namesvcTxCmd.AddCommand(client.PostCommands(
-		nameservicecmd.GetCmdAddCourse(mc.cdc),
-		nameservicecmd.GetCmdBankAccountEvent(mc.cdc),
+		nameservicecmd.ContribTxCmd(mc.cdc),
 	)...)
-
 
 	return namesvcTxCmd
 }

@@ -23,11 +23,11 @@ import (
 
 	gaiaInit "github.com/cosmos/cosmos-sdk/cmd/gaia/init"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	app "github.com/theuncharted/cosmostest"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	tmtypes "github.com/tendermint/tendermint/types"
+	app "github.com/theuncharted/atypeek_blockchain"
 )
 
 // DefaultNodeHome sets the folder where the applcation data and configuration will be stored
