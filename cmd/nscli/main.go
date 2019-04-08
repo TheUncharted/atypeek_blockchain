@@ -28,7 +28,7 @@ import (
 
 const (
 	storeAcc = "acc"
-	storeNS  = "ns"
+	storeNS  = "atypeek"
 )
 
 var defaultCLIHome = os.ExpandEnv("$HOME/.nscli")

@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	appName = "nameservice"
+	appName = "atypeek"
 )
 
 type nameServiceApp struct {
@@ -89,7 +89,6 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 	// It handles interactions with the namestore
 	app.nsKeeper = atypeek.NewKeeper(
 		app.cdc,
-		app.accountKeeper,
 		app.keyNS,
 	)
 
@@ -100,11 +99,11 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 	// Register the bank and nameservice routes here
 	app.Router().
 		AddRoute("bank", bank.NewHandler(app.bankKeeper)).
-		AddRoute("nameservice", atypeek.NewHandler(app.nsKeeper))
+		AddRoute("atypeek", atypeek.NewHandler(app.nsKeeper))
 
 	// The app.QueryRouter is the main query router where each module registers its routes
-	//app.QueryRouter().
-	//	AddRoute("nameservice", atypeek.NewQuerier(app.nsKeeper))
+	app.QueryRouter().
+		AddRoute("atypeek", atypeek.NewQuerier(app.nsKeeper))
 
 	// The initChainer handles translating the genesis.json file into initial state for the network
 	app.SetInitChainer(app.initChainer)

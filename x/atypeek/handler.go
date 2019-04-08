@@ -10,30 +10,23 @@ import (
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
-		case MsgContrib:
-			return handleMsgContrib(ctx, k, msg)
+		case MsgAddProject:
+			return handleAddProject(ctx, k, msg)
 		default:
-			errMsg := "Unrecognized contrib Msg type: " + reflect.TypeOf(msg).Name()
+			errMsg := "----Unrecognized Msg type: " + reflect.TypeOf(msg).Name()
 			return sdk.ErrUnknownRequest(errMsg).Result()
 		}
 	}
 }
 
 // Handle MsgContrib.
-func handleMsgContrib(ctx sdk.Context, k Keeper, msg MsgContrib) sdk.Result {
-	tags := sdk.EmptyTags()
-
-	fmt.Printf("*********handleMsgContrib********* %v", len(msg.Contribs))
-	for _, ctb := range msg.Contribs {
-		fmt.Printf("contrib")
-		err := k.UpdateContrib(ctx, ctb, &tags)
-		fmt.Printf("contrib done")
-		if err != nil {
-			return err.Result()
-		}
+func handleAddProject(ctx sdk.Context, k Keeper, msg MsgAddProject) sdk.Result {
+	resume := k.GetResume(ctx, msg.Owner)
+	if resume.Owner.Empty() {
+		fmt.Printf("handle add project with no owner \n")
+		resume.Owner = msg.Owner
 	}
-
-	return sdk.Result{
-		Tags: tags,
-	}
+	resume.AddProject(msg.ProjectInfo)
+	k.SetResume(ctx, resume)
+	return sdk.Result{}
 }

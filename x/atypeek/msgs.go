@@ -2,46 +2,50 @@ package atypeek
 
 import (
 	"encoding/json"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // MsgContrib - high level transaction of the contrib module
-type MsgContrib struct {
-	Contribs Contribs `json:"contribs"`
+type MsgAddProject struct {
+	Owner       sdk.AccAddress
+	ProjectInfo ProjectInfo
 }
 
-var _ sdk.Msg = MsgContrib{}
-
-// NewMsgContrib - construct arbitrary multi-in, multi-out contrib msg.
-func NewMsgContrib(ctb []Contrib) MsgContrib {
-	return MsgContrib{Contribs: ctb}
+func (m MsgAddProject) Route() string {
+	return "atypeek"
 }
 
-func (msg MsgContrib) Route() string { return "nameservice" } // TODO: "contrib/contrib"
+func (m MsgAddProject) Type() string {
+	return "add_project"
+}
 
-// Implements Msg.
-func (msg MsgContrib) Type() string { return "contrib" } // TODO: "contrib/contrib"
+func (m MsgAddProject) ValidateBasic() sdk.Error {
 
-// Implements Msg.
-func (msg MsgContrib) ValidateBasic() sdk.Error {
-	// this just makes sure all the contribs are properly formatted
-	if len(msg.Contribs) == 0 {
-		return ErrNoContribs(DefaultCodespace).TraceSDK("")
+	if m.Owner.Empty() {
+		return sdk.ErrInvalidAddress(m.Owner.String())
 	}
 
-	// make sure all contribs are individually valid
-	err := msg.Contribs.ValidateBasic()
-	if err != nil {
-		return err.TraceSDK("")
+	if m.ProjectInfo.Title == "" {
+		return sdk.ErrUnknownRequest("Title cannot be empty")
+	}
+
+	if m.ProjectInfo.StartDate == "" {
+		return sdk.ErrUnknownRequest("StartDate cannot be empty")
+	}
+
+	if m.ProjectInfo.EndDate == "" {
+		return sdk.ErrUnknownRequest("StartDate cannot be empty")
+	}
+
+	if m.ProjectInfo.Id == "" {
+		return sdk.ErrUnknownRequest("Id cannot be empty")
 	}
 
 	return nil
 }
 
-// Implements Msg.
-func (msg MsgContrib) GetSignBytes() []byte {
-	b, err := json.Marshal(msg) // XXX: ensure some canonical form
+func (m MsgAddProject) GetSignBytes() []byte {
+	b, err := json.Marshal(m) // XXX: ensure some canonical form
 	if err != nil {
 		panic(err)
 	}
@@ -49,18 +53,13 @@ func (msg MsgContrib) GetSignBytes() []byte {
 	return sdk.MustSortJSON(b)
 }
 
-// Implements Msg.
-func (msg MsgContrib) GetSigners() []sdk.AccAddress {
-	m := make(map[string]struct{})
-	addrs := make([]sdk.AccAddress, 0, len(msg.Contribs))
-	for _, ctb := range msg.Contribs {
-		contributor := ctb.GetContributor()
-		key := contributor.String()
-		_, found := m[key]
-		if !found {
-			addrs = append(addrs, contributor)
-			m[key] = struct{}{}
-		}
+func (m MsgAddProject) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{m.Owner}
+}
+
+func NewMsgAddProject(i ProjectInfo, owner sdk.AccAddress) MsgAddProject {
+	return MsgAddProject{
+		Owner:       owner,
+		ProjectInfo: i,
 	}
-	return addrs
 }

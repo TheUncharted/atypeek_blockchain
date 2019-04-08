@@ -18,12 +18,12 @@ func NewModuleClient(storeKey string, cdc *amino.Codec) ModuleClient {
 
 func (mc ModuleClient) GetQueryCmd() *cobra.Command {
 	namesvcQueryCmd := &cobra.Command{
-		Use:   "nameservice",
-		Short: "Querying commands for the nameservice module",
+		Use:   "atypeek",
+		Short: "Querying commands for the atypeek module",
 	}
 
 	namesvcQueryCmd.AddCommand(client.GetCommands(
-		nameservicecmd.GetContribCmd(mc.storeKey, mc.cdc),
+		nameservicecmd.GetCmdResume(mc.storeKey, mc.cdc),
 	)...)
 	return namesvcQueryCmd
 }
@@ -32,11 +32,11 @@ func (mc ModuleClient) GetQueryCmd() *cobra.Command {
 func (mc ModuleClient) GetTxCmd() *cobra.Command {
 	namesvcTxCmd := &cobra.Command{
 		Use:   "atypeek",
-		Short: "Nameservice transactions subcommands",
+		Short: "Atypeek transactions subcommands",
 	}
 
 	namesvcTxCmd.AddCommand(client.PostCommands(
-		nameservicecmd.ContribTxCmd(mc.cdc),
+		nameservicecmd.GetCmdAddProject(mc.cdc),
 	)...)
 
 	return namesvcTxCmd
