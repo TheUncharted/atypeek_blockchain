@@ -30,7 +30,11 @@ type nameServiceApp struct {
 
 	keyMain          *sdk.KVStoreKey
 	keyAccount       *sdk.KVStoreKey
-	keyNS            *sdk.KVStoreKey
+	keyProfiles      *sdk.KVStoreKey
+	keyProjects      *sdk.KVStoreKey
+	keySkills        *sdk.KVStoreKey
+	keyCourses       *sdk.KVStoreKey
+	keyEndorsements  *sdk.KVStoreKey
 	keyFeeCollection *sdk.KVStoreKey
 	keyParams        *sdk.KVStoreKey
 	tkeyParams       *sdk.TransientStoreKey
@@ -58,7 +62,11 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 
 		keyMain:          sdk.NewKVStoreKey("main"),
 		keyAccount:       sdk.NewKVStoreKey("acc"),
-		keyNS:            sdk.NewKVStoreKey("ns"),
+		keyProfiles:      sdk.NewKVStoreKey("profiles"),
+		keyProjects:      sdk.NewKVStoreKey("projects"),
+		keySkills:        sdk.NewKVStoreKey("skills"),
+		keyCourses:       sdk.NewKVStoreKey("courses"),
+		keyEndorsements:  sdk.NewKVStoreKey("endorsements"),
 		keyFeeCollection: sdk.NewKVStoreKey("fee_collection"),
 		keyParams:        sdk.NewKVStoreKey("params"),
 		tkeyParams:       sdk.NewTransientStoreKey("transient_params"),
@@ -89,7 +97,11 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 	// It handles interactions with the namestore
 	app.nsKeeper = atypeek.NewKeeper(
 		app.cdc,
-		app.keyNS,
+		app.keyProfiles,
+		app.keyProjects,
+		app.keySkills,
+		app.keyCourses,
+		app.keyEndorsements,
 	)
 
 	// The AnteHandler handles signature verification and transaction pre-processing
@@ -111,7 +123,11 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 	app.MountStores(
 		app.keyMain,
 		app.keyAccount,
-		app.keyNS,
+		app.keyProfiles,
+		app.keyProjects,
+		app.keySkills,
+		app.keyEndorsements,
+		app.keyCourses,
 		app.keyFeeCollection,
 		app.keyParams,
 		app.tkeyParams,

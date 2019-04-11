@@ -6,118 +6,172 @@ import (
 )
 
 type (
+	Profile struct {
+		Owner        sdk.AccAddress `json:"owner"`
+		Projects     []string       `json:"projects"`
+		Skills       []string       `json:"skills"`
+		Courses      []string       `json:"courses"`
+		Endorsements []string       `json:"endorsements"`
+	}
+
+	IProfile interface {
+		AddProject(info ProjectInfo) (id string, err error)
+		ListProjects() []Project
+	}
+
 	Project struct {
-		Id          string `json:"id"`
-		CustomerId  string `json:"customerId"`
-		Title       string `json:"title"`
-		Description string `json:"description"`
-		StartDate   string `json:"startDate"`
-		EndDate     string `json:"endDate"`
-	}
-
-	Skill struct {
-		Id   string `json:"id"`
-		Name string `json:"name"`
-	}
-
-	Course struct {
-		Id string `json:"id"`
+		Id          string         `json:"id"`
+		Owner       sdk.AccAddress `json:"owner"`
+		CustomerId  string         `json:"customerId"`
+		Title       string         `json:"title"`
+		Description string         `json:"description"`
+		StartDate   string         `json:"startDate"`
+		EndDate     string         `json:"endDate"`
+		Skills      []string       `json:"skills"`
 	}
 
 	ProjectInfo struct {
 		Id          string
+		Owner       sdk.AccAddress
 		CustomerId  string
 		Title       string
 		Description string
 		StartDate   string
 		EndDate     string
 	}
+
+	Skill struct {
+		Owner        sdk.AccAddress `json:"owner"`
+		Id           string         `json:"id"`
+		Name         string         `json:"name"`
+		Courses      []string       `json:"courses"`
+		Score        int64          `json:"score"`
+		Endorsements []string       `json:"endorsements"`
+	}
+
+	ISkill interface {
+		AddSkill(idSkill string) error
+		RemoveSkill(idSkill string) error
+	}
+
+	Course struct {
+		Owner sdk.AccAddress `json:"owner"`
+		Id    string         `json:"id"`
+		Name  string         `json:"name"`
+	}
+
+	ICourse interface {
+		AddCourse(idSkill string, idCourse string) error
+		RemoveCourse(idSkill string, idCourse string) error
+	}
+
+	Endorsement struct {
+		Id          string         `json:"id"`
+		IdSkill     string         `json:"idSkill"`
+		Contributor sdk.AccAddress `json:"contributor"`
+		Time        string         `json:"time"`
+		Receiver    sdk.AccAddress `json:"receiver"`
+		Vote        int            `json:"vote"`
+	}
 )
 
-type IResume interface {
-	AddProject(info ProjectInfo) (id string, err error)
-	GetProject(id string) Project
-	DeleteProject(id string) error
-	UpdateProject(id string, info ProjectInfo) error
-	ListProjects() []Project
+func NewProfile() Profile {
+	return Profile{
+		Owner:    nil,
+		Projects: []string{},
+		Skills:   []string{},
+		Courses:  []string{},
+	}
 }
 
-type ISkill interface {
-	AddSkill(idProject string, idSkill string) error
-	RemoveSkill(idProject string, idSkill string) error
+func (p Profile) AddProject(i ProjectInfo) (id string, err error) {
+
+	p.Projects = append(p.Projects, i.Id)
+	return "", nil
 }
 
-type ICourse interface {
-	AddCourse(idSkill string, idCourse string) error
-	RemoveCourse(idSkill string, idCourse string) error
+func (p Profile) ListProjects() []string {
+
+	return p.Projects
+}
+
+func (p Profile) String() string {
+	return fmt.Sprintf("%+v", p)
 }
 
 func NewProject() Project {
 	return Project{
 		Id:          "",
+		Owner:       nil,
 		CustomerId:  "",
 		Title:       "",
 		Description: "",
 		StartDate:   "",
 		EndDate:     "",
+		Skills:      []string{},
 	}
 }
 
-type Resume struct {
-	Owner    sdk.AccAddress     `json:"owner"`
-	Projects map[string]Project `json:"projects"`
-	Skills   map[string]Skill   `json:"skills"`
-	Courses  map[string]Course  `json:"courses"`
-}
-
-func NewResume() Resume {
-	return Resume{
-		Owner:    nil,
-		Projects: make(map[string]Project),
-		Skills:   make(map[string]Skill),
-		Courses:  make(map[string]Course),
+func NewProjectWithProjectInfo(i ProjectInfo) Project {
+	return Project{
+		Id:          i.Id,
+		Owner:       i.Owner,
+		CustomerId:  i.CustomerId,
+		Title:       i.Title,
+		Description: i.Description,
+		StartDate:   i.StartDate,
+		EndDate:     i.EndDate,
+		Skills:      []string{},
 	}
 }
 
-func (r Resume) AddProject(i ProjectInfo) (id string, err error) {
-	p := NewProject()
-	p.Id = i.Id
-	p.Title = i.Title
-	p.Description = i.Description
-	p.StartDate = i.StartDate
-	p.EndDate = i.EndDate
-	r.Projects[p.Id] = p
-	return "", nil
+func (p Project) String() string {
+	return fmt.Sprintf("%+v", p)
 }
 
-func (r Resume) GetProject(id string) Project {
-	return r.Projects[id]
-}
-
-func (r Resume) DeleteProject(id string) error {
-	delete(r.Projects, id)
-	return nil
-}
-
-func (r Resume) UpdateProject(id string, i ProjectInfo) error {
-	p := NewProject()
-	p.Id = i.Id
-	p.Title = i.Title
-	p.Description = i.Description
-	p.StartDate = i.StartDate
-	p.EndDate = i.EndDate
-	r.Projects[id] = p
-	return nil
-}
-
-func (r Resume) ListProjects() []Project {
-	projects := []Project{}
-	for _, v := range r.Projects {
-		projects = append(projects, v)
+func NewSkill() Skill {
+	return Skill{
+		Owner:   nil,
+		Id:      "",
+		Name:    "",
+		Courses: nil,
 	}
-	return projects
 }
 
-func (r Resume) String() string {
-	return fmt.Sprintf("%+v", r)
+func (s Skill) String() string {
+	return fmt.Sprintf("%+v", s)
+}
+
+func NewCourse() Course {
+	return Course{
+		Id: "",
+	}
+}
+
+func (c Course) String() string {
+	return fmt.Sprintf("%+v", c)
+}
+
+func (e Endorsement) String() string {
+	return fmt.Sprintf("%+v", e)
+}
+
+func NewEndorsement() Endorsement {
+	return Endorsement{
+		Id:          "",
+		IdSkill:     "",
+		Contributor: nil,
+		Time:        "",
+		Receiver:    nil,
+		Vote:        0,
+	}
+}
+
+type SkillScore struct {
+	IdSkill string `json:"id"`
+	Score   int    `json:"score"`
+}
+
+func (s SkillScore) String() string {
+	return fmt.Sprintf("%+v", s)
 }
