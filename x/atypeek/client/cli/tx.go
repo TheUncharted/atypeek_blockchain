@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/utils"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,134 +13,22 @@ import (
 )
 
 const (
-	flagId          = "id"
-	flagTitle       = "title"
-	flagDescription = "description"
-	flagStartDate   = "start"
-	flagEndDate     = "end"
+	flagProjectId = "projectId"
 
-	flagProjectId     = "projectId"
-	flagSkillId       = "skillId"
-	flagCourseId      = "courseId"
 	flagEndorsementId = "endorsementId"
 	flagName          = "name"
-	flagTime          = "time"
+	flagDuration      = "duration"
 	flagVote          = "vote"
-	flagReceiver      = "receiver"
+
+	flagReceiver     = "receiver"
+	flagReceiverName = "receiverName"
+
+	flagContributor     = "contributor"
+	flagContributorName = "contributorName"
+
+	flagComments = "comments"
+	flagSkills   = "skills"
 )
-
-// ContribTxCommand will create a contrib tx and sign it with the given key
-func GetCmdAddProject(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "add-project",
-		Short: "Add project to a profile",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc).WithAccountDecoder(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			if err := cliCtx.EnsureAccountExists(); err != nil {
-				return err
-			}
-
-			id := viper.GetString(flagId)
-			title := viper.GetString(flagTitle)
-			description := viper.GetString(flagDescription)
-			startDate := viper.GetString(flagStartDate)
-			endDate := viper.GetString(flagEndDate)
-
-			projectInfo := atypeek.ProjectInfo{
-				Id:          id,
-				Owner:       cliCtx.GetFromAddress(),
-				CustomerId:  "",
-				Title:       title,
-				Description: description,
-				StartDate:   startDate,
-				EndDate:     endDate,
-			}
-			msg := atypeek.NewMsgAddProject(projectInfo, cliCtx.GetFromAddress())
-			err := msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
-
-			cliCtx.PrintResponse = true
-			return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, []sdk.Msg{msg})
-		},
-	}
-
-	cmd.Flags().String(flagId, "", "Project Id")
-	cmd.Flags().String(flagTitle, "", "Title of project")
-	cmd.Flags().String(flagDescription, "", "Description of project")
-	cmd.Flags().String(flagStartDate, "", "Start date of project")
-	cmd.Flags().String(flagEndDate, "", "End date of project")
-	return cmd
-}
-
-func GetCmdAddSkill(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "add-skill",
-		Short: "Add skill to a project",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc).WithAccountDecoder(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			if err := cliCtx.EnsureAccountExists(); err != nil {
-				return err
-			}
-
-			idProject := viper.GetString(flagProjectId)
-			idSkill := viper.GetString(flagSkillId)
-			name := viper.GetString(flagName)
-
-			msg := atypeek.NewMsgAddSkill(idProject, idSkill, name, cliCtx.GetFromAddress())
-			err := msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
-
-			cliCtx.PrintResponse = true
-			return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, []sdk.Msg{msg})
-		},
-	}
-
-	cmd.Flags().String(flagProjectId, "", "Project Id")
-	cmd.Flags().String(flagSkillId, "", "SkillId")
-	cmd.Flags().String(flagName, "", "Description of project")
-	return cmd
-}
-
-func GetCmdAddCourse(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "add-course",
-		Short: "Add course to a skill",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc).WithAccountDecoder(cdc)
-			txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			if err := cliCtx.EnsureAccountExists(); err != nil {
-				return err
-			}
-
-			idCourse := viper.GetString(flagCourseId)
-			idSkill := viper.GetString(flagSkillId)
-			name := viper.GetString(flagName)
-
-			msg := atypeek.NewMsgAddCourse(idSkill, idCourse, name, cliCtx.GetFromAddress())
-			err := msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
-
-			cliCtx.PrintResponse = true
-			return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, []sdk.Msg{msg})
-		},
-	}
-
-	cmd.Flags().String(flagSkillId, "", "SkillId")
-	cmd.Flags().String(flagCourseId, "", "Course Id")
-	cmd.Flags().String(flagName, "", "Description of project")
-	return cmd
-}
 
 func GetCmdAddEndorsement(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
@@ -154,23 +43,45 @@ func GetCmdAddEndorsement(cdc *codec.Codec) *cobra.Command {
 			}
 
 			idEndorsement := viper.GetString(flagEndorsementId)
-			idSkill := viper.GetString(flagSkillId)
-			vote := viper.GetInt(flagVote)
-			time := viper.GetString(flagTime)
-			dest := viper.GetString(flagReceiver)
-			receiver, err := sdk.AccAddressFromBech32(dest)
+			idProject := viper.GetString(flagProjectId)
+
+			c := viper.GetString(flagContributor)
+			contributor, err := sdk.AccAddressFromBech32(c)
 			if err != nil {
 				return err
 			}
 
-			msg := atypeek.MsgAddEndorsement{
-				Owner:         cliCtx.GetFromAddress(),
-				Receiver:      receiver,
-				IdSkill:       idSkill,
-				IdEndorsement: idEndorsement,
-				Time:          time,
-				Vote:          vote,
+			contributorName := viper.GetString(flagContributorName)
+
+			r := viper.GetString(flagReceiver)
+			receiver, err := sdk.AccAddressFromBech32(r)
+			if err != nil {
+				return err
 			}
+
+			receiverName := viper.GetString(flagReceiverName)
+
+			vote := viper.GetInt(flagVote)
+			duration := viper.GetString(flagDuration)
+
+			comments := viper.GetString(flagComments)
+			skills := viper.GetString(flagSkills)
+
+			msg := atypeek.MsgAddEndorsement{
+				IdProject:       idProject,
+				IdEndorsement:   idEndorsement,
+				Contributor:     contributor,
+				ContributorName: contributorName,
+				Receiver:        receiver,
+				ReceiverName:    receiverName,
+				Duration:        duration,
+
+				Comments: comments,
+				Skills:   skills,
+				Vote:     vote,
+			}
+
+			fmt.Printf("****dfsdfs************ %+v\n", msg)
 
 			err = msg.ValidateBasic()
 			if err != nil {
@@ -182,10 +93,15 @@ func GetCmdAddEndorsement(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(flagSkillId, "", "SkillId")
+	cmd.Flags().String(flagProjectId, "", "ProjectId")
 	cmd.Flags().String(flagEndorsementId, "", "EndorsementId Id")
+	cmd.Flags().String(flagContributor, "", "Contributor adress")
+	cmd.Flags().String(flagContributorName, "", "Contributor name")
 	cmd.Flags().String(flagReceiver, "", "Receiver adress")
-	cmd.Flags().String(flagTime, "", "Date of endorsement")
+	cmd.Flags().String(flagReceiverName, "", "Receiver name")
+	cmd.Flags().String(flagDuration, "", "Duration of project")
 	cmd.Flags().String(flagVote, "", "Score")
+	cmd.Flags().String(flagComments, "", "Comments")
+	cmd.Flags().String(flagSkills, "", "Skills")
 	return cmd
 }

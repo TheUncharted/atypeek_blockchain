@@ -2,13 +2,11 @@ package rest
 
 import (
 	"fmt"
-	"github.com/theuncharted/atypeek_blockchain/x/atypeek"
 	"net/http"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
-	clientrest "github.com/cosmos/cosmos-sdk/client/rest"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	//sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
 )
@@ -36,40 +34,41 @@ type addProjectReq struct {
 
 func addProjectHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req addProjectReq
+		//var req addProjectReq
 
-		if !rest.ReadRESTReq(w, r, cdc, &req) {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
-			return
-		}
+		//if !rest.ReadRESTReq(w, r, cdc, &req) {
+		//	rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
+		//	return
+		//}
+		//
+		//baseReq := req.BaseReq.Sanitize()
+		//if !baseReq.ValidateBasic(w) {
+		//	return
+		//}
+		//
+		//addr, err := sdk.AccAddressFromBech32(req.Owner)
+		//if err != nil {
+		//	rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		//	return
+		//}
 
-		baseReq := req.BaseReq.Sanitize()
-		if !baseReq.ValidateBasic(w) {
-			return
-		}
+		//projectInfo := atypeek.ProjectInfo{
+		//	Id:          req.Id,
+		//	CustomerId:  "",
+		//	Title:       req.Title,
+		//	Description: req.Description,
+		//	StartDate:   req.StartDate,
+		//	EndDate:     req.EndDate,
+		//}
+		//msg := atypeek.NewMsgAddProject(projectInfo, addr)
+		//err = msg.ValidateBasic()
+		//if err != nil {
+		//	rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		//	return
+		//}
 
-		addr, err := sdk.AccAddressFromBech32(req.Owner)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		projectInfo := atypeek.ProjectInfo{
-			Id:          req.Id,
-			CustomerId:  "",
-			Title:       req.Title,
-			Description: req.Description,
-			StartDate:   req.StartDate,
-			EndDate:     req.EndDate,
-		}
-		msg := atypeek.NewMsgAddProject(projectInfo, addr)
-		err = msg.ValidateBasic()
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		clientrest.CompleteAndBroadcastTxREST(w, cliCtx, baseReq, []sdk.Msg{msg}, cdc)
+		//clientrest.CompleteAndBroadcastTxREST(w, cliCtx, baseReq, []sdk.Msg{msg}, cdc)
+		return
 	}
 }
 

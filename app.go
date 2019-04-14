@@ -28,13 +28,10 @@ type nameServiceApp struct {
 	*bam.BaseApp
 	cdc *codec.Codec
 
-	keyMain          *sdk.KVStoreKey
-	keyAccount       *sdk.KVStoreKey
-	keyProfiles      *sdk.KVStoreKey
-	keyProjects      *sdk.KVStoreKey
-	keySkills        *sdk.KVStoreKey
-	keyCourses       *sdk.KVStoreKey
-	keyEndorsements  *sdk.KVStoreKey
+	keyMain     *sdk.KVStoreKey
+	keyAccount  *sdk.KVStoreKey
+	keyProfiles *sdk.KVStoreKey
+
 	keyFeeCollection *sdk.KVStoreKey
 	keyParams        *sdk.KVStoreKey
 	tkeyParams       *sdk.TransientStoreKey
@@ -60,13 +57,10 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 		BaseApp: bApp,
 		cdc:     cdc,
 
-		keyMain:          sdk.NewKVStoreKey("main"),
-		keyAccount:       sdk.NewKVStoreKey("acc"),
-		keyProfiles:      sdk.NewKVStoreKey("profiles"),
-		keyProjects:      sdk.NewKVStoreKey("projects"),
-		keySkills:        sdk.NewKVStoreKey("skills"),
-		keyCourses:       sdk.NewKVStoreKey("courses"),
-		keyEndorsements:  sdk.NewKVStoreKey("endorsements"),
+		keyMain:     sdk.NewKVStoreKey("main"),
+		keyAccount:  sdk.NewKVStoreKey("acc"),
+		keyProfiles: sdk.NewKVStoreKey("profiles"),
+
 		keyFeeCollection: sdk.NewKVStoreKey("fee_collection"),
 		keyParams:        sdk.NewKVStoreKey("params"),
 		tkeyParams:       sdk.NewTransientStoreKey("transient_params"),
@@ -98,10 +92,6 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 	app.nsKeeper = atypeek.NewKeeper(
 		app.cdc,
 		app.keyProfiles,
-		app.keyProjects,
-		app.keySkills,
-		app.keyCourses,
-		app.keyEndorsements,
 	)
 
 	// The AnteHandler handles signature verification and transaction pre-processing
@@ -124,10 +114,7 @@ func NewNameServiceApp(logger log.Logger, db dbm.DB) *nameServiceApp {
 		app.keyMain,
 		app.keyAccount,
 		app.keyProfiles,
-		app.keyProjects,
-		app.keySkills,
-		app.keyEndorsements,
-		app.keyCourses,
+
 		app.keyFeeCollection,
 		app.keyParams,
 		app.tkeyParams,

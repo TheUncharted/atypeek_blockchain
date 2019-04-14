@@ -24,11 +24,6 @@ func (mc ModuleClient) GetQueryCmd() *cobra.Command {
 
 	namesvcQueryCmd.AddCommand(client.GetCommands(
 		nameservicecmd.GetCmdProfile(mc.storeKey, mc.cdc),
-		nameservicecmd.GetCmdProject(mc.storeKey, mc.cdc),
-		nameservicecmd.GetCmdSkill(mc.storeKey, mc.cdc),
-		nameservicecmd.GetCmdCourse(mc.storeKey, mc.cdc),
-		nameservicecmd.GetCmdEndorsement(mc.storeKey, mc.cdc),
-		nameservicecmd.GetCmdSkillScore(mc.storeKey, mc.cdc),
 	)...)
 	return namesvcQueryCmd
 }
@@ -41,9 +36,7 @@ func (mc ModuleClient) GetTxCmd() *cobra.Command {
 	}
 
 	namesvcTxCmd.AddCommand(client.PostCommands(
-		nameservicecmd.GetCmdAddProject(mc.cdc),
-		nameservicecmd.GetCmdAddSkill(mc.cdc),
-		nameservicecmd.GetCmdAddCourse(mc.cdc),
+
 		nameservicecmd.GetCmdAddEndorsement(mc.cdc),
 	)...)
 
