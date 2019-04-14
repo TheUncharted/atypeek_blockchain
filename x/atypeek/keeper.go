@@ -34,6 +34,7 @@ func (k Keeper) GetProfile(ctx sdk.Context, owner sdk.AccAddress) Profile {
 	if !store.Has([]byte(owner.String())) {
 		profile := NewProfile()
 		profile.Owner = owner
+		profile.Skills = make(map[string]int)
 		return profile
 	}
 	bz := store.Get([]byte(owner.String()))
@@ -45,6 +46,26 @@ func (k Keeper) GetProfile(ctx sdk.Context, owner sdk.AccAddress) Profile {
 func (k Keeper) AddEndorsement(ctx sdk.Context, e Endorsement, receiver sdk.AccAddress) error {
 	profile := k.GetProfile(ctx, receiver)
 	profile.Endorsements = append(profile.Endorsements, e)
+
+	//var skills []string
+	//if len(e.Skills) > 0 {
+	//	skills = strings.Split(e.Skills, ",")
+	//	for _, skill := range skills {
+	//		skill = strings.TrimSpace(skill)
+	//		fmt.Println("skill %s", skill)
+	//
+	//		if val, ok := profile.Skills[skill]; ok {
+	//			fmt.Println("+++++")
+	//			profile.Skills[skill] = val + e.Vote
+	//		} else {
+	//			fmt.Println("-----")
+	//			profile.Skills[skill] = e.Vote
+	//		}
+	//
+	//	}
+	//
+	//}
+
 	k.SetProfile(ctx, profile)
 	return nil
 }
