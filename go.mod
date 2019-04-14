@@ -3,7 +3,7 @@ module github.com/theuncharted/atypeek_blockchain
 go 1.12
 
 require (
-	cloud.google.com/go v0.37.0 // indirect
+	cloud.google.com/go v0.37.4 // indirect
 	dmitri.shuralyov.com/app/changes v0.0.0-20181114035150-5af16e21babb // indirect
 	dmitri.shuralyov.com/service/change v0.0.0-20190301072032-c25fb47d71b3 // indirect
 	github.com/GoogleCloudPlatform/cloudsql-proxy v0.0.0-20190312192040-a2a65ffce834 // indirect
@@ -42,7 +42,6 @@ require (
 	github.com/jessevdk/go-flags v1.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/kisielk/errcheck v1.2.0 // indirect
-	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/kkdai/bstream v0.0.0-20181106074824-b3251f7901ec // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mattn/go-isatty v0.0.7 // indirect
@@ -50,7 +49,6 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
-	github.com/openzipkin/zipkin-go v0.1.5 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90 // indirect
 	github.com/prometheus/procfs v0.0.0-20190306233201-d0f344d83b0c // indirect
@@ -86,18 +84,13 @@ require (
 	github.com/ugorji/go/codec v0.0.0-20190309163734-c4a1c341dc93 // indirect
 	github.com/zondax/hid v0.9.0 // indirect
 	github.com/zondax/ledger-go v0.8.0 // indirect
-	go.opencensus.io v0.19.1 // indirect
 	go4.org v0.0.0-20190218023631-ce4c26f7be8e // indirect
 	golang.org/x/build v0.0.0-20190313044741-1b471b8bf26e // indirect
 	golang.org/x/crypto v0.0.0-20190313024323-a1f597ede03a // indirect
 	golang.org/x/exp v0.0.0-20190312203227-4b39c73a6495 // indirect
-	golang.org/x/lint v0.0.0-20190301231843-5614ed5bae6f // indirect
 	golang.org/x/mobile v0.0.0-20190313035508-a4d62f3683ec // indirect
-	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421 // indirect
 	golang.org/x/perf v0.0.0-20190312170614-0655857e383f // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
-	golang.org/x/tools v0.0.0-20190312170243-e65039ee4138 // indirect
-	google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19 // indirect
 	honnef.co/go/tools v0.0.0-20190215041234-466a0476246c // indirect
 	sourcegraph.com/sqs/pbtypes v1.0.0 // indirect
 
